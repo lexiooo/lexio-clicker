@@ -8,6 +8,7 @@ import flixel.tweens.FlxEase;
 import flixel.tweens.FlxTween;
 import flixel.ui.FlxButton;
 import flixel.util.FlxColor;
+import flixel.util.FlxTimer;
 
 class ClickerState extends FlxState
 {
@@ -15,6 +16,8 @@ class ClickerState extends FlxState
 
 	var scoreText:FlxText;
 	var cookie:FlxButton;
+	var settings:FlxButton;
+	private var delayTimer:FlxTimer;
 
 	override public function create()
 	{
@@ -36,7 +39,7 @@ class ClickerState extends FlxState
 		{
 			FlxG.sound.playMusic("assets/music/music.ogg", 1, true);
 		}
-		scoreText = new FlxText(0, 10, FlxG.width, "0");
+		scoreText = new FlxText(0, 10, FlxG.width, '$score');
 		scoreText.size = 48;
 		scoreText.alignment = FlxTextAlign.CENTER;
 		scoreText.setFormat("assets/fonts/serifbi.ttf", 48, 0xffffff, "center");
@@ -46,16 +49,23 @@ class ClickerState extends FlxState
 		cookie.loadGraphic("assets/images/art/0.png");
 		cookie.screenCenter();
 		add(cookie);
+		settings = new FlxButton(580, 10, "", onOptionsClick);
+		settings.loadGraphic("assets/images/settings.png");
+		add(settings);
 	}
 
 	var cookieTween:FlxTween;
 	var scoreTween:FlxTween;
+	var settingsTween:FlxTween;
 
 	function onCookieButtonClick()
 	{
 		score += 1;
 		scoreText.text = '$score';
-		FlxG.sound.play("assets/sounds/mouse-click.ogg");
+		if (score % 100 == 0)
+			FlxG.sound.play("assets/sounds/squeak.ogg");
+		else
+			FlxG.sound.play("assets/sounds/mouse-click.ogg");
 		if (cookieTween == null)
 			cookieTween = FlxTween.tween(cookie.scale, {x: 0.9, y: 0.9}, 0.5, {ease: FlxEase.quadInOut, type: FlxTweenType.BACKWARD});
 		else
@@ -64,6 +74,22 @@ class ClickerState extends FlxState
 			scoreTween = FlxTween.tween(scoreText.scale, {x: 1.1, y: 1.1}, 0.2, {ease: FlxEase.quadInOut, type: FlxTweenType.BACKWARD});
 		else
 			scoreTween.start();
+	}
+
+	function onOptionsClick()
+	{
+		if (settingsTween == null)
+			settingsTween = FlxTween.tween(settings.scale, {x: 0.9, y: 0.9}, 0.5, {ease: FlxEase.quadInOut, type: FlxTweenType.BACKWARD});
+		else
+			settingsTween.start();
+		FlxG.camera.fade(FlxColor.BLACK, 0.5, false, null, true);
+		delayTimer = new FlxTimer();
+		delayTimer.start(0.5, switchStateAfterDelay);
+	}
+
+	private function switchStateAfterDelay(timer:FlxTimer):Void
+	{
+		FlxG.switchState(new OptionsState());
 	}
 
 	var meowPlayed:Bool = false; // Flag to track if the meow sound has been played
